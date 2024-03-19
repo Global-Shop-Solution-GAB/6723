@@ -1,0 +1,180 @@
+﻿Program.Sub.ScreenSU.Start
+Gui.FormPO..Create(BaseForm)
+Gui.FormPO..Caption("")
+Gui.FormPO..Size(190,183)
+Gui.FormPO..MinX(0)
+Gui.FormPO..MinY(0)
+Gui.FormPO..Position(0,0)
+Gui.FormPO..AlwaysOnTop(False)
+Gui.FormPO..FontName("Tahoma")
+Gui.FormPO..FontSize(8.25)
+Gui.FormPO..ControlBox(True)
+Gui.FormPO..MaxButton(True)
+Gui.FormPO..MinButton(True)
+Gui.FormPO..MousePointer(0)
+Gui.FormPO..Moveable(True)
+Gui.FormPO..Sizeable(True)
+Gui.FormPO..ShowInTaskBar(True)
+Gui.FormPO..TitleBar(True)
+Gui.FormPO..Event(UnLoad,FormPO_UnLoad)
+Gui.FormPO.dtpDueDate.Create(DatePicker)
+Gui.FormPO.dtpDueDate.Enabled(True)
+Gui.FormPO.dtpDueDate.Visible(True)
+Gui.FormPO.dtpDueDate.Zorder(0)
+Gui.FormPO.dtpDueDate.Size(100,20)
+Gui.FormPO.dtpDueDate.Position(42,39)
+Gui.FormPO.dtpDueDate.CheckBox(False)
+Gui.FormPO.dtpDueDate.FontName("Tahoma")
+Gui.FormPO.dtpDueDate.FontSize(8.25)
+Gui.FormPO.dtpDueDate.Event(Change,dtpDueDate_Change)
+Gui.FormPO.lbl1.Create(Label,"Select new PO Due Date:",True,137,13,0,24,19,True,0,"Tahoma",8.25,,0,0)
+Gui.FormPO.lbl1.BorderStyle(0)
+Gui.FormPO.lbl1.FontStyle(True,False,False,False,False)
+Gui.FormPO.dtpShipDate.Create(DatePicker)
+Gui.FormPO.dtpShipDate.Enabled(True)
+Gui.FormPO.dtpShipDate.Visible(True)
+Gui.FormPO.dtpShipDate.Zorder(0)
+Gui.FormPO.dtpShipDate.Size(100,20)
+Gui.FormPO.dtpShipDate.Position(42,102)
+Gui.FormPO.dtpShipDate.CheckBox(False)
+Gui.FormPO.dtpShipDate.FontName("Tahoma")
+Gui.FormPO.dtpShipDate.FontSize(8.25)
+Gui.FormPO.dtpShipDate.Event(Change,dtpShipDate_Change)
+Gui.FormPO.lbl2.Create(Label,"Select new PO Ship Date:",True,139,13,0,22,82,True,0,"Tahoma",8.25,,0,0)
+Gui.FormPO.lbl2.BorderStyle(0)
+Gui.FormPO.lbl2.FontStyle(True,False,False,False,False)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+V.Global.sError.Declare(String)
+
+Program.Sub.Preflight.End
+Program.Sub.Main.Start
+'Author: Arturo Almaguer
+'Date: 02 May 2022
+'Customer: Warren Valve, quote number 13510
+'This program allows the user to modify a PO's Due Date and Ship Date when opening it through Purchasing - View - Purchase Orders.
+'This script is triggered from hook 16890 PO Header Script 1 button
+
+Function.Intrinsic.UI.UsePixels ' Allows you to use Pixels instead of Twips throughout
+
+F.Intrinsic.Control.Try
+
+	V.Local.dDueDate.Declare(Date)
+	V.Local.sYear.Declare(String)
+	V.Local.sMonth.Declare(String)
+	V.Local.sDay.Declare(String)
+	V.Local.sDueDate.Declare(String)
+	V.Local.sShipDate.Declare(String)
+	
+	'This program will execute only when the user is on the Purchase Order Header, view mode
+	F.Intrinsic.Control.If(V.Caller.Switches, =, "V")
+	
+		'V.Passed.000029 = PO Header Due Date, format YYYYMMDD
+		f.Intrinsic.String.Left(V.Passed.000029, 4, V.Local.sYear)
+		F.Intrinsic.String.Mid(V.Passed.000029, 5, 2, V.Local.sMonth)
+		F.Intrinsic.String.Right(V.Passed.000029, 2, V.Local.sDay)
+		
+		'Building variable to set date picker to current PO Due Date
+		F.Intrinsic.String.Build("{0}{1}{2}", V.Local.sMonth, V.Local.sDay, V.Local.sYear, V.Local.sDueDate)
+		F.Intrinsic.Date.ConvertDString(V.Local.sDueDate, "MMDDYYYY", V.Local.dDueDate)
+		GUI.FormPO.dtpDueDate.Value(V.Local.dDueDate)
+		
+		'V.Passed.000070 = PO Header Ship Date, format YYYYMMDD
+		f.Intrinsic.String.Left(V.Passed.000070, 4, V.Local.sYear)
+		F.Intrinsic.String.Mid(V.Passed.000070, 5, 2, V.Local.sMonth)
+		F.Intrinsic.String.Right(V.Passed.000070, 2, V.Local.sDay)
+		
+		'Building variable to set date picker to current PO Due Date
+		F.Intrinsic.String.Build("{0}{1}{2}", V.Local.sMonth, V.Local.sDay, V.Local.sYear, V.Local.sShipDate)
+		F.Intrinsic.Date.ConvertDString(V.Local.sShipDate, "MMDDYYYY", V.Local.sShipDate)
+		GUI.FormPO.dtpShipDate.Value(V.Local.sShipDate)
+		
+		'Displaying form
+		GUI.FormPO..Show
+		
+	F.Intrinsic.Control.EndIf
+	
+F.Intrinsic.Control.Catch
+	
+	F.Intrinsic.Control.CallSub(CatchError)
+	
+F.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+Program.Sub.CatchError.Start
+'To display the error
+F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}", V.Ambient.ScriptPath, V.Ambient.Newline, V.Ambient.SubroutineCalledFrom, V.Ambient.ErrorNumber, V.Ambient.ErrorDescription, V.Ambient.GABVersion, V.Global.sError) 
+F.Intrinsic.UI.Msgbox(V.Global.sError)
+F.Intrinsic.Control.CallSub("FormPO_UnLoad")
+Program.Sub.CatchError.End
+Program.Sub.FormPO_UnLoad.Start
+'Closes the connection if it is open
+f.Intrinsic.Control.If(v.ODBC.con.exists,=,"1") 	
+    f.ODBC.Connection!Con.Close
+f.Intrinsic.Control.EndIf
+
+'Making form invisible
+GUI.FormPO..Visible(False)
+
+'Ending program
+F.Intrinsic.Control.End
+Program.Sub.FormPO_UnLoad.End
+Program.Sub.dtpDueDate_Change.Start
+'This subroutine updates the PO Due Date
+
+F.Intrinsic.Control.Try
+
+	V.Local.dDueDate.Declare(Date)
+	V.Local.sPO.Declare(String)
+	V.Local.sSQL.Declare(String)
+
+	V.Local.dDueDate.Set(V.Screen.FormPO!dtpDueDate.Value)
+	F.Intrinsic.String.LPad(V.Passed.000008,"0",7,V.Local.sPO)
+	
+	'Update date to DB
+	F.ODBC.Connection!Con.OpenCompanyConnection
+	F.Intrinsic.String.Build("update PO_HEADER set DATE_DUE = '{0}' where PURCHASE_ORDER = '{1}' and RECORD_NO = '  A';", V.Local.dDueDate.FormatMMDDYY, V.Local.sPO, V.Local.sSQL)
+	F.ODBC.Connection!Con.Execute(V.Local.sSQL)
+	F.ODBC.Connection!Con.Close
+	
+	'Updating new Due Date in PO Header
+	v.Passed.000029.Set(v.Local.dDueDate.FormatYYYYMMDD)
+
+F.Intrinsic.Control.Catch
+	
+	F.Intrinsic.Control.CallSub(CatchError)
+	
+F.Intrinsic.Control.EndTry
+Program.Sub.dtpDueDate_Change.End
+Program.Sub.dtpShipDate_Change.Start
+'This subroutine updates the PO Ship Date
+
+F.Intrinsic.Control.Try
+
+	V.Local.dShipDate.Declare(Date)
+	V.Local.sPO.Declare(String)
+	V.Local.sSQL.Declare(String)
+
+	V.Local.dShipDate.Set(V.Screen.FormPO!dtpShipDate.Value)
+	F.Intrinsic.String.LPad(V.Passed.000008,"0",7,V.Local.sPO)
+	
+	'Update date to DB
+	F.ODBC.Connection!Con.OpenCompanyConnection
+	F.Intrinsic.String.Build("update PO_HEADER set SHIP_DATE = '{0}' where PURCHASE_ORDER = '{1}' and RECORD_NO = '  A';", V.Local.dShipDate.FormatYYYYMMDD, V.Local.sPO, V.Local.sSQL)
+	F.ODBC.Connection!Con.Execute(V.Local.sSQL)
+	F.ODBC.Connection!Con.Close
+	
+	'Updating new Due Date in PO Header
+	v.Passed.000070.Set(v.Local.dShipDate.FormatYYYYMMDD)
+
+F.Intrinsic.Control.Catch
+	
+	F.Intrinsic.Control.CallSub(CatchError)
+	
+F.Intrinsic.Control.EndTry
+Program.Sub.dtpShipDate_Change.End
+
+Program.Sub.Comments.Start
+${$5$}$3.0.0.0$}$1
+${$6$}$apadilla$}$20220505132703172$}$Lag9STqBJOmNXSbd5+msRcBWPGz0aFqSzPePUG9qWbx1d6F2hGAOXUmCHkEzpZFBshLRV0WbYEV6cA7UmtRsIg==
+Program.Sub.Comments.End
